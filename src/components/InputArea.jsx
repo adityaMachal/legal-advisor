@@ -7,14 +7,13 @@ function InputArea() {
 
   const handleSend = () => {
     if (input.trim() === '') return;
+    console.log('Sending message:', input); // Debug log
     sendMessage(input);
     setInput('');
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSend();
-    }
+    if (e.key === 'Enter') handleSend();
   };
 
   return (
@@ -24,7 +23,7 @@ function InputArea() {
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyPress={handleKeyPress}
-        placeholder="Type your message here..."
+        placeholder="Ask a legal question..."
       />
       <button onClick={handleSend}>Send</button>
     </div>
