@@ -1,0 +1,138 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Advisor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .chat-container {
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #f1f1f1;
+        }
+        .input-area {
+            display: flex;
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .typing-indicator {
+            display: none;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>Legal Advisor</h1>
+    <div class="chat-container" id="chat-container">
+        <div class="message bot-message">
+            Hello! How can I help you today?
+        </div>
+    </div>
+    <div class="typing-indicator" id="typing-indicator">Bot is typing...</div>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        userInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+
+            // Add user message to chat
+            appendMessage(message, 'user');
+            userInput.value = '';
+
+            // Show typing indicator
+            typingIndicator.style.display = 'block';
+
+            // Send message to backend
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide typing indicator
+                typingIndicator.style.display = 'none';
+                
+                if (data.error) {
+                    appendMessage(`Error: ${data.error}`, 'bot');
+                } else {
+                    appendMessage(data.response, 'bot');
+                }
+            })
+            .catch(error => {
+                typingIndicator.style.display = 'none';
+                appendMessage(`Error: ${error.message}`, 'bot');
+            });
+        }
+
+        function appendMessage(content, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            // Convert newlines to <br> tags
+            content = content.replace(/\n/g, '<br>');
+            
+            messageDiv.innerHTML = content;
+            chatContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>
